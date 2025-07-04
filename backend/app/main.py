@@ -22,6 +22,7 @@ app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(query.router, prefix="/query", tags=["Query"])
 app.include_router(summarize.router, prefix="/summarize", tags=["Summarize"])
 
+
 @app.get("/")
 def read_root():
     return {"message": "AutoDoc AI backend is running."}
