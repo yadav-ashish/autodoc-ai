@@ -18,6 +18,7 @@ def summarize_document(file_id: str) -> str:
     pages = extract_text_from_pdf(pdf_path)
     full_text = "\n".join([page["text"] for page in pages])
 
+    """
     # Truncate if too long (TinyLlama max length is 2048)
     max_input_tokens = 1800
     inputs = tokenizer(full_text, return_tensors="pt", truncation=True, max_length=max_input_tokens)
@@ -25,6 +26,21 @@ def summarize_document(file_id: str) -> str:
 
     # Chat prompt format
     prompt = f"<s>[INST] Summarize the following document:\n\n{truncated_text}\n\n[/INST]"
+    """
+
+    # Calculate available tokens for input after accounting for prompt and output
+    prompt_template = "<s>[INST] Summarize the following document:\n\n{}\n\n[/INST]"
+    max_model_tokens = 2048
+    max_output_tokens = 300
+
+    # Estimate prompt length (without document text)
+    prompt_tokens = len(tokenizer(prompt_template.format(""), return_tensors="pt")["input_ids"][0])
+    max_input_tokens = max_model_tokens - max_output_tokens - prompt_tokens
+
+    inputs = tokenizer(full_text, return_tensors="pt", truncation=True, max_length=max_input_tokens)
+    truncated_text = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
+
+    prompt = prompt_template.format(truncated_text)
 
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
 
