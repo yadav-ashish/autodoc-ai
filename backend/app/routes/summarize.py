@@ -4,8 +4,10 @@ from app.services.summarizer import summarize_document
 
 router = APIRouter()
 
+
 class SummarizeRequest(BaseModel):
     file_id: str
+
 
 @router.post("/")
 async def summarize_file(request: SummarizeRequest):

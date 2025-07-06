@@ -8,6 +8,7 @@ router = APIRouter()
 UPLOAD_DIR = "data/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
 @router.post("/")
 async def upload_file(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
@@ -28,5 +29,5 @@ async def upload_file(file: UploadFile = File(...)):
         "file_id": file_id,
         "filename": file.filename,
         "num_pages": len(parsed_pages),
-        "preview": parsed_pages[:2]  # send first 2 pages as preview
+        "preview": parsed_pages[:2],  # send first 2 pages as preview
     }

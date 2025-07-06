@@ -5,7 +5,7 @@ from app.routes import upload, query, summarize
 app = FastAPI(
     title="AutoDoc AI",
     description="An intelligent document QA and summarization system using open-source GenAI.",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 # Enable CORS for frontend communication

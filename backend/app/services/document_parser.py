@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 from typing import List, Dict
 
+
 def extract_text_from_pdf(file_path: str) -> List[Dict]:
     """
     Extracts text from a PDF and returns a list of pages with metadata.
@@ -14,10 +15,7 @@ def extract_text_from_pdf(file_path: str) -> List[Dict]:
     for page_num, page in enumerate(doc):
         text = page.get_text()
         if text.strip():
-            pages.append({
-                "page_number": page_num + 1,
-                "text": text.strip()
-            })
+            pages.append({"page_number": page_num + 1, "text": text.strip()})
 
     doc.close()
     return pages

@@ -12,7 +12,7 @@ uploaded_file = st.sidebar.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file:
     with st.spinner("Uploading..."):
-        files = {'file': (uploaded_file.name, uploaded_file, "application/pdf")}
+        files = {"file": (uploaded_file.name, uploaded_file, "application/pdf")}
         response = requests.post(f"{API_URL}/upload/", files=files)
         if response.status_code == 200:
             data = response.json()
@@ -28,7 +28,12 @@ if "preview" in st.session_state:
     st.subheader("📑 Document Preview")
     for i, page in enumerate(st.session_state["preview"]):
         st.markdown(f"**Page {i+1}:**")
-        st.text_area("Document text", value=page["text"], height=200, label_visibility="collapsed")
+        st.text_area(
+            "Document text",
+            value=page["text"],
+            height=200,
+            label_visibility="collapsed",
+        )
 
 
 # Ask question

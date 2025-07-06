@@ -1,26 +1,23 @@
 import os
-import json
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+import requests
+from dotenv import load_dotenv
 from app.services.embedder import embed_text
 from app.services.vector_store import get_similar_chunks
 from app.services.document_parser import extract_text_from_pdf
 
-# Load model once at startup
-#MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.1" ## Best for GPU.
-MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0" ## Best for CPU.
+load_dotenv()
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+HF_API_TOKEN = os.getenv("<hf-api-token>")
+HF_CHAT_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+CHAT_API_URL = f"https://api-inference.huggingface.co/models/{HF_CHAT_MODEL}"
+HEADERS = {"Authorization": f"Bearer {HF_API_TOKEN}"}
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16 if device == "cuda" else torch.float32)
-model.to(device)
-model.eval()
 
 def format_prompt(chunks, question):
     context = "\n\n".join(chunk["text"] for chunk in chunks)
-    prompt = f"<s>[INST] Use the context below to answer the user's question.\n\nContext:\n{context}\n\nQuestion: {question} [/INST]"
+    prompt = f"Use the context below to answer the user's question.\n\nContext:\n{context}\n\nQuestion: {question}"
     return prompt
+
 
 def answer_query(file_id: str, question: str) -> str:
     pdf_path = f"data/uploads/{file_id}.pdf"
@@ -31,10 +28,22 @@ def answer_query(file_id: str, question: str) -> str:
     top_chunks = get_similar_chunks(texts, query_embedding, top_k=5)
 
     prompt = format_prompt(top_chunks, question)
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "temperature": 0.7,
+            "max_new_tokens": 300,
+        }
+    }
 
-    with torch.no_grad():
-        output = model.generate(**inputs, max_new_tokens=256, do_sample=True, temperature=0.7)
+    response = requests.post(CHAT_API_URL, headers=HEADERS, json=payload)
+    response.raise_for_status()
+    result = response.json()
 
-    response = tokenizer.decode(output[0], skip_special_tokens=True)
-    return response.split("Answer:")[-1].strip()
+    # Extract model response
+    if isinstance(result, list) and "generated_text" in result[0]:
+        return result[0]["generated_text"].split("Answer:")[-1].strip()
+    elif isinstance(result, dict) and "generated_text" in result:
+        return result["generated_text"].split("Answer:")[-1].strip()
+    else:
+        return str(result)

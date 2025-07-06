@@ -4,9 +4,11 @@ from app.services.rag_pipeline import answer_query
 
 router = APIRouter()
 
+
 class QueryRequest(BaseModel):
     file_id: str
     question: str
+
 
 @router.post("/")
 async def query_document(query: QueryRequest):

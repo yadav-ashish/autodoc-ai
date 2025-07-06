@@ -1,5 +1,4 @@
 # created by virtualenv automatically
-/bin/
-/lib/
-/share/
+bin/
+lib/
 .idea/
